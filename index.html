@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="百鬼夜行">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#0d0507">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>百鬼夜行 - 和風ハクスラ</title>
+<style>
+:root{
+  --ink:#0d0507; --ink2:#1a0d10; --paper:#e8dcc8; --dim:#9c8e7a;
+  --shu:#c1272d; --shu2:#e04b46; --kin:#d4af37; --ai:#1f4e5f; --midori:#4a7c59;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);
+  font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  touch-action:none;overscroll-behavior:none}
+#game{display:block;position:absolute;inset:0;width:100%;height:100%}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 18px);
+  background:radial-gradient(circle at 50% 30%,rgba(40,10,14,.94),rgba(8,4,6,.985));
+  z-index:20;overflow-y:auto;-webkit-overflow-scrolling:touch;text-align:center}
+.screen.on{display:flex}
+h1.title{font-size:clamp(30px,11vw,58px);letter-spacing:.16em;color:var(--paper);
+  text-shadow:0 0 18px rgba(193,39,45,.65),0 2px 0 #000;line-height:1.15;font-weight:700}
+h1.title small{display:block;font-size:.3em;letter-spacing:.42em;color:var(--kin);margin-top:10px;font-weight:400}
+.sub{color:var(--dim);font-size:13px;letter-spacing:.14em;margin:10px 0 4px}
+.rule{width:min(420px,88vw);height:1px;background:linear-gradient(90deg,transparent,var(--kin),transparent);margin:14px 0}
+.cards{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;max-width:760px;margin-top:8px}
+.card{flex:1 1 150px;max-width:220px;min-width:132px;background:linear-gradient(180deg,rgba(30,16,18,.96),rgba(14,8,9,.96));
+  border:1px solid rgba(212,175,55,.35);border-radius:10px;padding:12px 10px;cursor:pointer;
+  transition:transform .12s,border-color .12s,box-shadow .12s;position:relative}
+.card:active{transform:scale(.97)}
+.card.sel{border-color:var(--shu2);box-shadow:0 0 0 2px rgba(224,75,70,.5),0 0 22px rgba(193,39,45,.5)}
+.card .cn{font-size:15px;font-weight:700;letter-spacing:.06em;margin-bottom:4px}
+.card .cd{font-size:11px;color:var(--dim);line-height:1.5;letter-spacing:.02em}
+.card .ci{font-size:26px;line-height:1;margin-bottom:6px}
+.card .cs{font-size:11px;color:var(--kin);margin-top:6px;letter-spacing:.04em}
+.card .rarbadge{position:absolute;top:-1px;right:-1px;font-size:10px;padding:2px 7px;border-radius:0 10px 0 8px;
+  background:#000;border:1px solid currentColor}
+.btn{margin-top:14px;display:inline-block;padding:13px 30px;font-size:16px;letter-spacing:.22em;font-family:inherit;
+  color:#fff;background:linear-gradient(180deg,var(--shu2),var(--shu));border:1px solid rgba(255,220,190,.35);
+  border-radius:8px;cursor:pointer;box-shadow:0 4px 18px rgba(193,39,45,.4)}
+.btn:active{transform:translateY(1px);filter:brightness(1.1)}
+.btn.ghost{background:transparent;border:1px solid rgba(212,175,55,.5);color:var(--kin);box-shadow:none}
+.btn.sm{padding:9px 18px;font-size:13px;letter-spacing:.14em;margin-top:8px}
+.deadtitle{font-size:clamp(26px,9vw,44px);color:var(--shu2);letter-spacing:.24em;text-shadow:0 0 20px rgba(193,39,45,.7)}
+.statline{display:flex;justify-content:space-between;width:min(420px,88vw);font-size:13px;padding:5px 2px;
+  border-bottom:1px dashed rgba(212,175,55,.22);letter-spacing:.05em}
+.statline b{color:var(--kin);font-weight:600}
+.metaList{width:min(460px,92vw);margin:8px 0}
+.metaRow{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px dashed rgba(212,175,55,.2);text-align:left}
+.metaRow .mname{flex:1;font-size:13px}
+.metaRow .mlv{color:var(--kin);font-size:12px;min-width:44px;text-align:right;letter-spacing:.04em}
+.metaRow .mbtn{padding:7px 13px;font-size:12px;font-family:inherit;background:rgba(193,39,45,.85);color:#fff;
+  border:1px solid rgba(255,220,190,.3);border-radius:6px;cursor:pointer;min-width:74px;letter-spacing:.06em}
+.metaRow .mbtn:disabled{background:rgba(60,50,50,.6);color:#7a6f66;border-color:rgba(120,110,100,.3);cursor:default}
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 100px);transform:translateX(-50%);
+  display:flex;flex-direction:column;gap:6px;align-items:center;z-index:40;pointer-events:none;width:92vw}
+.tst{background:rgba(10,6,7,.9);border:1px solid rgba(212,175,55,.4);color:var(--paper);padding:7px 16px;
+  border-radius:20px;font-size:12.5px;letter-spacing:.06em;animation:tin .3s ease}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#scrLoot .lootbox{max-height:56vh;overflow-y:auto;width:min(560px,94vw)}
+.hint{font-size:12px;color:var(--dim);line-height:1.7;letter-spacing:.04em;margin-top:12px;max-width:400px}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border:1px solid rgba(212,175,55,.4);border-radius:12px;
+  color:var(--kin);margin:3px 3px 0 0;letter-spacing:.05em}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div class="screen on" id="scrTitle">
+  <h1 class="title">百鬼夜行<small>HYAKKI YAGYO</small></h1>
+  <div class="rule"></div>
+  <div class="sub">― 妖を斬り、深奥へ潜れ ―</div>
+  <div class="sub" id="metaSummary"></div>
+  <div class="cards" id="startWeapons"></div>
+  <button class="btn" id="btnStart">潜 入</button>
+  <button class="btn ghost sm" id="btnShrine">神社（永続強化）</button>
+  <div class="hint">左の仮想スティックで移動／右の「斬」で攻撃。短く引くとダッシュ。<br>PC: WASD移動, J/クリック攻撃, K/Shift ダッシュ。</div>
+</div>
+
+<div class="screen" id="scrReward">
+  <h1 class="title" style="font-size:clamp(22px,7vw,34px)">社 の 前</h1>
+  <div class="sub" id="rewardSub">一つの加護を選べ</div>
+  <div class="cards" id="rewardCards"></div>
+  <button class="btn ghost sm" id="btnSkipReward">受け取らず進む</button>
+</div>
+
+<div class="screen" id="scrShrine">
+  <h1 class="title" style="font-size:clamp(22px,7vw,34px)">神 社</h1>
+  <div class="sub">小判 <b id="shrineCoin">0</b> ／ 加護は永続する</div>
+  <div class="metaList" id="metaList"></div>
+  <button class="btn" id="btnShrineBack">戻 る</button>
+</div>
+
+<div class="screen" id="scrLoot">
+  <h1 class="title" style="font-size:clamp(20px,6vw,30px)" id="lootTitle">拾 得</h1>
+  <div class="sub" id="lootSub"></div>
+  <div class="lootbox" id="lootBody"></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+    <button class="btn sm" id="btnLootYes">装備する</button>
+    <button class="btn ghost sm" id="btnLootNo">捨てる</button>
+  </div>
+</div>
+
+<div class="screen" id="scrDead">
+  <div class="deadtitle">死 者 の 帳</div>
+  <div class="rule"></div>
+  <div class="statline"><span>到達 階層</span><b id="dDepth">-</b></div>
+  <div class="statline"><span>討伐 数</span><b id="dKills">-</b></div>
+  <div class="statline"><span>回収 小判</span><b id="dCoins">-</b></div>
+  <div class="statline"><span>最強 一振</span><b id="dWeapon">-</b></div>
+  <div class="sub" id="deadHint">小判は持ち帰られた。神社で加護を買え。</div>
+  <button class="btn" id="btnRetry">再 挑 戦</button>
+  <button class="btn ghost sm" id="btnShrineDead">神社（永続強化）</button>
+</div>
+
+<div class="screen" id="scrPause">
+  <h1 class="title" style="font-size:clamp(22px,7vw,34px)">小 休 止</h1>
+  <div class="sub" id="pauseStats"></div>
+  <div class="lootbox" id="pauseGear"></div>
+  <button class="btn" id="btnResume">再 開</button>
+  <button class="btn ghost sm" id="btnQuit">諦めて戻る（小判は没収）</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   百鬼夜行 - HYAKKI YAGYO  /  和風ディアブロ風ハクスラ
+   single-file PWA game (Canvas2D)
+   ========================================================= */
+"use strict";
+
+/* ---------- 定数 ---------- */
+var TAU = Math.PI * 2;
+function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function rnd(a,b){ return a+Math.random()*(b-a); }
+function rndi(a,b){ return Math.floor(rnd(a,b+1)); }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function dist2(ax,ay,bx,by){ var dx=ax-bx, dy=ay-by; return dx*dx+dy*dy; }
+function fmt(n){ return Math.round(n); }
+
+/* ---------- 武器データ ---------- */
+/* type: melee(扇状) / thrust(直線貫通) / ranged(弾) / aoe(周囲) */
+var WEAPONS = [
+  {id:'bokken',   name:'木刀',     type:'melee', dmg:8,  cd:0.42, range:48,  arc:1.5, knock:130, icon:'🪵', desc:'稽古用の木刀。癖がなく扱いやすい。'},
+  {id:'uchigatana',name:'打刀',    type:'melee', dmg:12, cd:0.50, range:54,  arc:1.7, knock:160, icon:'🗡', desc:'武士の魂。バランスの取れた一振り。'},
+  {id:'tachi',    name:'太刀',     type:'melee', dmg:16, cd:0.74, range:74,  arc:1.9, knock:210, icon:'⚔', desc:'長寸の刀。広く深く斬り払う。'},
+  {id:'kodachi',  name:'小太刀',   type:'melee', dmg:7,  cd:0.27, range:42,  arc:1.5, knock:80,  icon:'🔪', desc:'軽快な連撃。手数で押し切る。'},
+  {id:'ninjato',  name:'忍者刀',   type:'melee', dmg:10, cd:0.36, range:52,  arc:1.5, knock:110, crit:0.15, icon:'🗡', desc:'闇に煌く刃。急所を穿つ。'},
+  {id:'naginata', name:'薙刀',     type:'melee', dmg:13, cd:0.60, range:80,  arc:2.6, knock:230, icon:'⚔', desc:'広い弧で薙ぎ払う長柄。'},
+  {id:'yari',     name:'鑓',       type:'thrust',dmg:15, cd:0.54, range:112, pierce:3, icon:'🔱', desc:'鋭い突き。一直線に貫く。'},
+  {id:'jitte',    name:'十手',     type:'melee', dmg:9,  cd:0.38, range:46,  arc:1.2, knock:280, icon:'🥢', desc:'受け流し、打ち据える捕り物道具。'},
+  {id:'kusarigama',name:'鎖鎌',    type:'aoe',  dmg:11, cd:0.68, range:88,  knock:150, icon:'⛓', desc:'鎖分銅を振り回し周囲を薙ぐ。'},
+  {id:'kanabo',   name:'金棒',     type:'melee', dmg:26, cd:1.00, range:64,  arc:2.2, knock:430, icon:'🏏', desc:'鬼の得物。重く、砕く。'},
+  {id:'yumi',     name:'和弓',     type:'ranged',dmg:14, cd:0.72, speed:640, pierce:2, icon:'🏹', desc:'長弓。遠くから射抜く。'},
+  {id:'shuriken', name:'手裏剣',   type:'ranged',dmg:6,  cd:0.21, speed:580, pierce:1, icon:'✴', desc:'忍の投擲具。手数で攻める。'},
+  {id:'kunai',    name:'苦無',     type:'ranged',dmg:10, cd:0.44, speed:540, pierce:1, count:2, spread:0.22, icon:'🔩', desc:'二連の投げ苦無。'},
+  {id:'tessen',   name:'鉄扇',     type:'aoe',  dmg:9,  cd:0.48, range:74,  knock:120, reflect:1, icon:'🪭', desc:'開けば刃、閉じれば鉄塊。'},
+  {id:'shakujo',  name:'錫杖',     type:'aoe',  dmg:13, cd:0.82, range:98,  element:'holy', knock:140, icon:'🪄', desc:'錫杖を鳴らし祓魔する。'},
+  {id:'hinawaju', name:'火縄銃',   type:'ranged',dmg:34, cd:1.45, speed:900, pierce:6, icon:'🔥', desc:'一撃必殺の火縄銃。'},
+  {id:'gohei',    name:'御幣',     type:'melee', dmg:11, cd:0.48, range:66,  arc:2.0, element:'holy', knock:150, icon:'🎏', desc:'神威を宿す祓いの幣。'},
+  {id:'juzu',     name:'数珠',     type:'aoe',  dmg:8,  cd:0.62, range:82,  element:'holy', knock:100, icon:'📿', desc:'珠を弾き邪気を払う。'}
+];
+var WEAPON_BY_ID = {};WEAPONS.forEach(function(w){ WEAPON_BY_ID[w.id]=w; });
+
+/* ---------- レアリティ ---------- */
+var RARITY = {
+  common:  {name:'並', color:'#cfc6b8', mult:1.00, affix:0, w:100},
+  uncommon:{name:'良', color:'#7fd18a', mult:1.14, affix:1, w:52},
+  rare:    {name:'名', color:'#6fb3e8', mult:1.30, affix:2, w:24},
+  epic:    {name:'秘', color:'#b483e8', mult:1.50, affix:3, w:10},
+  legend:  {name:'神', color:'#e8c76f', mult:1.74, affix:4, w:3.4},
+  myth:    {name:'妖', color:'#e86f6f', mult:2.05, affix:5, w:0.9}
+};
+var RARITY_ORDER = ['common','uncommon','rare','epic','legend','myth'];
+
+/* ---------- アフィックス ---------- */
+var AFFIXES = [
+  {k:'atk',   t:'業火の', short:'炎',  dmin:0.08, dmax:0.22, elem:'fire'},
+  {k:'atk',   t:'氷結の', short:'氷',  dmin:0.08, dmax:0.22, elem:'ice'},
+  {k:'atk',   t:'雷鳴の', short:'雷',  dmin:0.08, dmax:0.22, elem:'thunder'},
+  {k:'atk',   t:'毒蝕の', short:'毒',  dmin:0.08, dmax:0.22, elem:'poison'},
+  {k:'atk',   t:'破邪の', short:'聖',  dmin:0.08, dmax:0.24, elem:'holy'},
+  {k:'atk',   t:'鬼殺しの',short:'対鬼',dmin:0.10, dmax:0.30},
+  {k:'spd',   t:'疾風の', short:'速',  dmin:0.08, dmax:0.20},
+  {k:'crit',  t:'会心の', short:'会心',dmin:0.04, dmax:0.12},
+  {k:'critDmg',t:'断罪の',short:'断罪',dmin:0.15, dmax:0.45},
+  {k:'reach', t:'剛毅の', short:'剛',  dmin:0.06, dmax:0.18},
+  {k:'hp',    t:'金剛の', short:'金剛',dmin:0.06, dmax:0.20},
+  {k:'life',  t:'吸命の', short:'吸命',dmin:0.02, dmax:0.06},
+  {k:'coin',  t:'福禄の', short:'福',  dmin:0.10, dmax:0.35},
+  {k:'move',  t:'神足の', short:'神足',dmin:0.04, dmax:0.12},
+  {k:'aoe',   t:'爆ぜの', short:'爆',  dmin:0.10, dmax:0.30},
+  {k:'pierce',t:'貫通の', short:'貫',  dmin:0.05, dmax:0.16}
+];
+var AFFIX_DESC = {
+  atk:'攻撃力', spd:'攻撃速度', crit:'会心率', critDmg:'会心ダメージ', reach:'射程',
+  hp:'最大生命力', life:'生命吸収', coin:'小判獲得', move:'移動速度', aoe:'爆発威力', pierce:'貫通'
+};
+
+/* ---------- 敵 ---------- */
+var MOBS = [
+  {id:'kooni',    name:'子鬼',      hp:22, spd:54, dmg:6,  r:14, color:'#c0504d', xp:5,  coin:2, armor:0},
+  {id:'oni',      name:'鬼',        hp:62, spd:44, dmg:12, r:21, color:'#b03a2e', xp:12, coin:5, armor:0.05},
+  {id:'tengu',    name:'天狗',      hp:44, spd:40, dmg:9,  r:18, color:'#8e44ad', xp:14, coin:6, armor:0, range:270, proj:'wind', pspeed:230, pdmg:8},
+  {id:'kappa',    name:'河童',      hp:34, spd:78, dmg:8,  r:15, color:'#279f5a', xp:10, coin:4, armor:0},
+  {id:'kitsune',  name:'妖狐',      hp:40, spd:66, dmg:10, r:16, color:'#e6912b', xp:13, coin:6, armor:0},
+  {id:'yukionna', name:'雪女',      hp:50, spd:38, dmg:11, r:19, color:'#5dade2', xp:16, coin:7, armor:0, range:240, proj:'ice', pspeed:200, pdmg:9},
+  {id:'kasa',     name:'からかさ小僧',hp:28, spd:60, dmg:7, r:16, color:'#a6742c', xp:8,  coin:3, armor:0},
+  {id:'gaikotsu', name:'骸骨武者',  hp:78, spd:34, dmg:14, r:20, color:'#bdc3c7', xp:18, coin:8, armor:0.30},
+  {id:'gumo',     name:'土蜘蛛',    hp:42, spd:72, dmg:9,  r:17, color:'#55557a', xp:12, coin:5, armor:0, range:190, proj:'web', pspeed:260, pdmg:6},
+  {id:'nue',      name:'鵺',        hp:96, spd:52, dmg:16, r:22, color:'#7b4a9e', xp:24, coin:11, armor:0.12, range:300, proj:'dark', pspeed:250, pdmg:11},
+  {id:'rokuro',   name:'ろくろ首',  hp:58, spd:48, dmg:12, r:18, color:'#c2a37a', xp:17, coin:8, armor:0.08, range:210, proj:'tongue', pspeed:300, pdmg:7}
+];
+
+/* ---------- ボス ---------- */
+var BOSSES = [
+  {id:'shuten', name:'酒呑童子', hp:520, spd:50, dmg:22, r:38, color:'#a12f2a', xp:120, coin:60, armor:0.15, boss:true,
+   ring:{n:10,pdmg:12,pspeed:200,cd:2.4}, charge:{cd:5,dmg:26}},
+  {id:'daitengu', name:'大天狗', hp:620, spd:58, dmg:24, r:36, color:'#7d3fa8', xp:150, coin:75, armor:0.12, boss:true,
+   ring:{n:14,pdmg:13,pspeed:240,cd:2.0}, summon:'tengu'},
+  {id:'kyubi', name:'九尾の狐', hp:760, spd:64, dmg:26, r:38, color:'#e07a1f', xp:190, coin:90, armor:0.14, boss:true,
+   ring:{n:16,pdmg:14,pspeed:260,cd:1.8}, charge:{cd:4.2,dmg:30}, summon:'kitsune'},
+  {id:'hannya', name:'般若', hp:900, spd:62, dmg:30, r:40, color:'#b3223c', xp:230, coin:110, armor:0.18, boss:true,
+   ring:{n:18,pdmg:15,pspeed:280,cd:1.6}, charge:{cd:3.8,dmg:34}},
+  {id:'orochi', name:'八岐大蛇', hp:1400, spd:54, dmg:34, r:48, color:'#2f7d5b', xp:400, coin:220, armor:0.22, boss:true,
+   ring:{n:22,pdmg:17,pspeed:300,cd:1.4}, charge:{cd:3.2,dmg:38}, summon:'oni'}
+];
+
+/* ---------- レベルアップ加護（3択） ---------- */
+var PERKS = [
+  {id:'atk10',  name:'鬼の力',   icon:'💪', desc:'攻撃力 +14%',              apply:function(p){p.atk*=1.14;}},
+  {id:'atk20',  name:'羅刹',     icon:'👹', desc:'攻撃力 +22%、移動 −4%',    apply:function(p){p.atk*=1.22;p.moveMul*=0.96;}},
+  {id:'spd12',  name:'疾風',     icon:'🌀', desc:'攻撃速度 +13%',            apply:function(p){p.atkSpd*=1.13;}},
+  {id:'move12', name:'韋駄天',   icon:'👣', desc:'移動速度 +11%',            apply:function(p){p.moveMul*=1.11;}},
+  {id:'hp25',   name:'金剛身',   icon:'🛡', desc:'最大生命力 +26、全回復',   apply:function(p){p.maxHp+=26;p.hp=p.maxHp;}},
+  {id:'crit8',  name:'心眼',     icon:'👁', desc:'会心率 +9%',               apply:function(p){p.crit+=0.09;}},
+  {id:'cdmg40', name:'断罪',     icon:'💥', desc:'会心ダメージ +45%',        apply:function(p){p.critDmg+=0.45;}},
+  {id:'reach',  name:'間合い',   icon:'📏', desc:'攻撃射程 +16%',            apply:function(p){p.reachMul*=1.16;}},
+  {id:'life',   name:'吸命',     icon:'🩸', desc:'与ダメージの4%を生命力に', apply:function(p){p.lifesteal+=0.04;}},
+  {id:'regen',  name:'再生',     icon:'🌸', desc:'毎秒 生命力+1.6',          apply:function(p){p.regen+=1.6;}},
+  {id:'magnet', name:'招福',     icon:'🧲', desc:'小判・拾得の引き寄せ +60%',apply:function(p){p.magnet*=1.6;}},
+  {id:'luck',   name:'強運',     icon:'🍀', desc:'良品ドロップ率 +25%',      apply:function(p){p.luck*=1.25;}},
+  {id:'thorns', name:'棘鎧',     icon:'🌵', desc:'被弾時 反撃 12 ダメージ',  apply:function(p){p.thorns+=12;}},
+  {id:'chain',  name:'連鎖斬',   icon:'⚡', desc:'撃破時 周囲へ雷 18 ダメージ',apply:function(p){p.chainDmg+=18;}},
+  {id:'elemhit',name:'属性付与', icon:'🔮', desc:'攻撃に炎・氷・雷の追撃',   apply:function(p){p.elemBonus+=0.35;}},
+  {id:'dashcd', name:'縮地',     icon:'💨', desc:'ダッシュ再使用 −25%',      apply:function(p){p.dashCdMax*=0.75;}},
+  {id:'healonmove',name:'体幹',  icon:'🌊', desc:'移動中 生命力+1/秒',       apply:function(p){p.moveRegen+=1.0;}},
+  {id:'xp',     name:'悟り',     icon:'📖', desc:'経験値獲得 +30%',          apply:function(p){p.xpGain*=1.3;}},
+  {id:'bossdmg',name:'討魔',     icon:'⛩', desc:'対ボス ダメージ +30%',     apply:function(p){p.bossDmg+=0.30;}},
+  {id:'aoe',    name:'破裂',     icon:'🧨', desc:'撃破時に爆発（威力32）',   apply:function(p){p.deathBoom+=32;}}
+];
+
+/* ---------- 護符（装備） ---------- */
+var CHARMS = [
+  {id:'c_atk',  name:'火之護符',  icon:'🔴', stat:'atk',   v:0.12, desc:'攻撃力 +12%'},
+  {id:'c_spd',  name:'風之護符',  icon:'🟢', stat:'spd',   v:0.10, desc:'攻撃速度 +10%'},
+  {id:'c_crit', name:'刃之護符',  icon:'🟡', stat:'crit',  v:0.06, desc:'会心率 +6%'},
+  {id:'c_cdmg', name:'雷之護符',  icon:'🟣', stat:'critDmg',v:0.35,desc:'会心ダメージ +35%'},
+  {id:'c_hp',   name:'地之護符',  icon:'🟤', stat:'hp',    v:30,   desc:'最大生命力 +30'},
+  {id:'c_move', name:'水之護符',  icon:'🔵', stat:'move',  v:0.09, desc:'移動速度 +9%'},
+  {id:'c_life', name:'血之護符',  icon:'🩸', stat:'life',  v:0.03, desc:'生命吸収 +3%'},
+  {id:'c_reach',name:'空之護符',  icon:'⚪', stat:'reach', v:0.14, desc:'射程 +14%'},
+  {id:'c_coin', name:'金之護符',  icon:'🟨', stat:'coin',  v:0.25, desc:'小判獲得 +25%'},
+  {id:'c_regen',name:'森之護符',  icon:'🌿', stat:'regen', v:1.4,  desc:'毎秒 生命力 +1.4'}
+];
+
+/* ---------- 永続強化（神社） ---------- */
+var META_UPG = [
+  {id:'m_atk',  name:'武の加護',  desc:'攻撃力 +5%（累積）', base:120, step:1.55, max:20},
+  {id:'m_hp',   name:'命の加護',  desc:'開始生命力 +12',     base:100, step:1.5,  max:20},
+  {id:'m_move', name:'疾の加護',  desc:'移動速度 +3%',        base:150, step:1.6,  max:10},
+  {id:'m_luck', name:'福の加護',  desc:'良品ドロップ +12%',   base:180, step:1.65, max:10},
+  {id:'m_coin', name:'富の加護',  desc:'小判獲得 +15%',       base:140, step:1.55, max:10},
+  {id:'m_start',name:'初太刀の加護',desc:'開始武器の数 +1',   base:400, step:2.4,  max:6}
+];
+
+/* =========================================================
+   CORE / DOM / 状態
+   ========================================================= */
+var cv = document.getElementById('game');
+var ctx = cv.getContext('2d', {alpha:false});
+var W=1,H=1,DPR=Math.min(window.devicePixelRatio||1,2);
+var ATK={x:0,y:0,r:47}, DASH={x:0,y:0,r:31};
+
+function layoutButtons(){
+  ATK.r=47; DASH.r=31;
+  ATK.x = W-88; ATK.y = H-108;
+  DASH.x = W-182; DASH.y = H-66;
+}
+function resize(){
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.floor(W*DPR); cv.height = Math.floor(H*DPR);
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  layoutButtons();
+}
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', function(){ setTimeout(resize, 320); });
+
+var G = {
+  state:'title', t:0, last:0,
+  depth:1, room:1, roomsPerDepth:5,
+  coins:0, kills:0, runCoins:0,
+  level:1, xp:0, xpNeed:14,
+  player:null,
+  mobs:[], bullets:[], ebullets:[], fx:[], drops:[], floats:[],
+  gate:null, cam:{x:0,y:0}, shake:0,
+  roomW:1040, roomH:1240, uid:0,
+  rewardKind:'room', lootItem:null,
+  bossActive:false, startWeapons:[],
+  meta:null, elapsed:0, hitStop:0
+};
+
+/* ---------- セーブ（永続） ---------- */
+function loadMeta(){
+  var def = {coins:0, up:{}, runs:0, best:1};
+  try{
+    var s = localStorage.getItem('hyakki_meta_v1');
+    if(s){ var m=JSON.parse(s); if(m && typeof m==='object'){ if(!m.up) m.up={}; if(!m.coins) m.coins=0; return m; } }
+  }catch(e){}
+  return def;
+}
+function saveMeta(){ try{ localStorage.setItem('hyakki_meta_v1', JSON.stringify(G.meta)); }catch(e){} }
+function metaLv(id){ return (G.meta && G.meta.up && G.meta.up[id])|0; }
+function metaCost(u){ return Math.round(u.base * Math.pow(u.step, metaLv(u.id))); }
+
+/* =========================================================
+   生成 / ステータス
+   ========================================================= */
+function pickRarity(luck){
+  luck = luck||1;
+  var ws=[], tot=0;
+  for(var i=0;i<RARITY_ORDER.length;i++){
+    var w = RARITY[RARITY_ORDER[i]].w * (i>0 ? Math.pow(luck,i*0.85) : 1);
+    ws.push(w); tot+=w;
+  }
+  var x=Math.random()*tot;
+  for(var j=0;j<ws.length;j++){ x-=ws[j]; if(x<=0) return RARITY_ORDER[j]; }
+  return 'common';
+}
+function makeWeapon(defId, level, rarity){
+  var def = WEAPON_BY_ID[defId];
+  rarity = rarity || 'common';
+  var w = { def:def, level:level||1, rarity:rarity, affixes:[], uid:(++G.uid) };
+  var n = RARITY[rarity].affix;
+  var pool = AFFIXES.slice();
+  for(var i=0;i<n && pool.length;i++){
+    var a = pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+    w.affixes.push({k:a.k, t:a.t, short:a.short, elem:a.elem, v:rnd(a.dmin,a.dmax)});
+  }
+  w.name = weaponName(w);
+  return w;
+}
+function weaponName(w){
+  var s = (w.affixes.length ? w.affixes[0].t : '') + w.def.name;
+  if(w.level>1) s += '・'+w.level+'振';
+  if(w.affixes.length>1) s += '・'+w.affixes.slice(1).map(function(a){return a.short;}).join('');
+  return s;
+}
+function weaponStats(w){
+  var d=w.def, m = RARITY[w.rarity].mult * (1 + 0.17*(w.level-1));
+  var s = { dmg:d.dmg*m, cd:d.cd, range:d.range||0, arc:d.arc||0, knock:d.knock||0,
+            crit:(d.crit||0), critDmg:0, life:0, coin:0, move:0, aoe:0,
+            pierce:(d.pierce||0), elem:d.element||null, hp:0 };
+  w.affixes.forEach(function(a){
+    switch(a.k){
+      case 'atk': s.dmg *= (1+a.v); if(a.elem) s.elem = s.elem || a.elem; break;
+      case 'spd': s.cd /= (1+a.v); break;
+      case 'crit': s.crit += a.v; break;
+      case 'critDmg': s.critDmg += a.v; break;
+      case 'reach': s.range *= (1+a.v); break;
+      case 'hp': s.hp += a.v; break;
+      case 'life': s.life += a.v; break;
+      case 'coin': s.coin += a.v; break;
+      case 'move': s.move += a.v; break;
+      case 'aoe': s.aoe += a.v; break;
+      case 'pierce': s.pierce += Math.round(a.v*5); break;
+    }
+  });
+  return s;
+}
+function weaponPower(w){ var s=weaponStats(w); return (s.dmg / Math.max(0.05, s.cd)) * (1 + s.crit*s.critDmg*0.5); }
+function rarityStars(r){ return ({common:'', uncommon:'★', rare:'★★', epic:'★★★', legend:'★★★★', myth:'★★★★★'})[r]||''; }
+
+function newPlayer(startWeaponId){
+  var baseHp = 100 + metaLv('m_hp')*12;
+  var p = {
+    x:0,y:0,r:15, vx:0,vy:0, face:0,
+    hp:baseHp, maxHp:baseHp, baseSpd:178, moveMul:1,
+    atk:1, atkSpd:1, crit:0.05, critDmg:1.6, reachMul:1,
+    lifesteal:0, regen:0, moveRegen:0, magnet:1, luck:1,
+    thorns:0, chainDmg:0, elemBonus:0, bossDmg:0, deathBoom:0,
+    xpGain:1, coinMul:1, dashCdMax:1.9, dashCd:0, dashT:0, inv:0,
+    atkTimer:0, hurtFlash:0, swing:0, swingDir:0, moving:false,
+    weapon: makeWeapon(startWeaponId, 1, 'common'),
+    charms:[null,null,null]
+  };
+  p.atk     *= (1 + metaLv('m_atk')*0.05);
+  p.moveMul *= (1 + metaLv('m_move')*0.03);
+  p.luck    *= (1 + metaLv('m_luck')*0.12);
+  p.coinMul *= (1 + metaLv('m_coin')*0.15);
+  return p;
+}
+function charmTotals(p){
+  var t={atk:0,spd:0,crit:0,critDmg:0,hp:0,move:0,life:0,reach:0,coin:0,regen:0};
+  p.charms.forEach(function(c){ if(c){ t[c.stat]=(t[c.stat]||0)+c.v; } });
+  return t;
+}
+function computeStats(p){
+  var w = weaponStats(p.weapon), t = charmTotals(p), d = p.weapon.def;
+  var st = {};
+  st.dmg     = w.dmg * p.atk * (1+t.atk);
+  st.cd      = w.cd / p.atkSpd;
+  st.crit    = p.crit + t.crit + w.crit;
+  st.critDmg = p.critDmg + t.critDmg + w.critDmg;
+  st.range   = (w.range||0) * p.reachMul * (1+t.reach);
+  st.arc     = w.arc || 0;
+  st.knock   = w.knock || 0;
+  st.pierce  = w.pierce || 0;
+  st.elem    = w.elem || null;
+  st.aoe     = w.aoe || 0;
+  st.move    = p.baseSpd * p.moveMul * (1+t.move) * (1+(w.move||0));
+  st.maxHp   = p.maxHp + t.hp + w.hp;
+  st.life    = p.lifesteal + t.life + (w.life||0);
+  st.regen   = p.regen + t.regen;
+  st.coin    = p.coinMul * (1+t.coin) * (1+(w.coin||0));
+  st.type    = d.type;
+  return st;
+}
+function clampHp(p, st){ if(p.hp > st.maxHp) p.hp = st.maxHp; }
+
+/* =========================================================
+   SFX（簡易・WebAudio）
+   ========================================================= */
+var actx=null;
+function sfx(kind){
+  try{
+    if(!actx){ var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; actx=new AC(); }
+    if(actx.state==='suspended') actx.resume();
+    var t = actx.currentTime;
+    var o = actx.createOscillator(), g = actx.createGain();
+    o.connect(g); g.connect(actx.destination);
+    var map = {
+      hit:  {f:320, f2:120, d:0.08, v:0.09, type:'square'},
+      kill: {f:180, f2:60,  d:0.16, v:0.11, type:'sawtooth'},
+      hurt: {f:140, f2:70,  d:0.18, v:0.13, type:'square'},
+      coin: {f:880, f2:1320,d:0.07, v:0.06, type:'triangle'},
+      level:{f:520, f2:1040,d:0.28, v:0.10, type:'triangle'},
+      swipe:{f:600, f2:220, d:0.06, v:0.05, type:'sine'},
+      boss: {f:90,  f2:48,  d:0.5,  v:0.14, type:'sawtooth'},
+      good: {f:660, f2:990, d:0.16, v:0.09, type:'triangle'}
+    };
+    var m = map[kind]||map.hit;
+    o.type=m.type; o.frequency.setValueAtTime(m.f,t); o.frequency.exponentialRampToValueAtTime(Math.max(20,m.f2), t+m.d);
+    g.gain.setValueAtTime(m.v,t); g.gain.exponentialRampToValueAtTime(0.0001, t+m.d);
+    o.start(t); o.stop(t+m.d+0.02);
+  }catch(e){}
+}
+
+/* =========================================================
+   画面（DOMオーバーレイ）
+   ========================================================= */
+function hideAll(){ var a=document.querySelectorAll('.screen'); for(var i=0;i<a.length;i++) a[i].classList.remove('on'); }
+function showScreen(id){ hideAll(); var el=document.getElementById(id); if(el) el.classList.add('on'); }
+function toast(msg, color){
+  var box=document.getElementById('toast');
+  var d=document.createElement('div'); d.className='tst'; d.textContent=msg;
+  if(color) d.style.color=color;
+  box.appendChild(d);
+  setTimeout(function(){ d.style.transition='opacity .4s'; d.style.opacity='0'; setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },420); }, 1500);
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* =========================================================
+   初期武器の抽選
+   ========================================================= */
+function rollStartWeapons(){
+  var n = 3 + metaLv('m_start');
+  var pool = WEAPONS.slice();
+  var out=[];
+  for(var i=0;i<n && pool.length;i++) out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  return out;
+}
+function renderTitle(){
+  var wrap=document.getElementById('startWeapons'); wrap.innerHTML='';
+  G.startWeapons.forEach(function(def, idx){
+    var c=document.createElement('div'); c.className='card'+(idx===0?' sel':'');
+    c.innerHTML = '<div class="ci">'+def.icon+'</div><div class="cn">'+esc(def.name)+'</div>'+
+      '<div class="cd">'+esc(def.desc)+'</div><div class="cs">'+wpTypeLabel(def.type)+' 威力'+def.dmg+' 速度'+def.cd.toFixed(2)+'s</div>';
+    c.onclick=function(){ G.startWeaponsSel = def.id; var all=wrap.children; for(var k=0;k<all.length;k++) all[k].classList.remove('sel'); c.classList.add('sel'); };
+    wrap.appendChild(c);
+  });
+  G.startWeaponsSel = G.startWeapons[0].id;
+  var ms=document.getElementById('metaSummary');
+  ms.textContent = '所持小判 '+fmt(G.meta.coins)+' ／ 最深 '+G.meta.best+' 階';
+}
+function wpTypeLabel(t){
+  return ({melee:'斬撃', thrust:'突撃', ranged:'飛道具', aoe:'範囲'})[t]||'斬撃';
+}
+
+/* =========================================================
+   安全領域 / ボタン
+   ========================================================= */
+var TOPPAD = 10;
+function computeSafe(){
+  var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone;
+  TOPPAD = standalone ? 46 : 12;
+}
+function pauseBtn(){ return {x:W-38, y:TOPPAD+16, r:22}; }
+function inCircle(p, c, mul){ var rr=c.r*c.r*(mul||1); return dist2(p.x,p.y,c.x,c.y) < rr; }
+
+/* =========================================================
+   プレイヤー生成 / 部屋生成
+   ========================================================= */
+function gainXp(amount){
+  var p=G.player;
+  G.xp += amount * p.xpGain;
+  while(G.xp >= G.xpNeed){
+    G.xp -= G.xpNeed; G.level++;
+    G.xpNeed = Math.round(G.xpNeed * 1.30);
+    sfx('level');
+    openReward('level');
+    return;
+  }
+}
+function makeMob(def, hpMul, dmgMul){
+  return {
+    id:(++G.uid), def:def, name:def.name,
+    hp:def.hp*hpMul, maxHp:def.hp*hpMul,
+    dmg:def.dmg*dmgMul, spd:def.spd, r:def.r, color:def.color, armor:def.armor||0,
+    x:0,y:0, vx:0,vy:0, atkCd:rnd(0.4,1.3), flash:0, hitCd:0,
+    range:def.range||0, proj:def.proj||null, pspeed:def.pspeed||0, pdmg:(def.pdmg||0)*dmgMul, shootCd:rnd(0.8,2.2),
+    xp:def.xp, coin:def.coin, boss:!!def.boss,
+    ringCd:rnd(1,2), chargeCd:3, chargeT:0, summonCd:6, dead:false
+  };
+}
+function spawnRoom(){
+  G.mobs.length=0; G.bullets.length=0; G.ebullets.length=0; G.fx.length=0; G.floats.length=0; G.drops.length=0; G.gate=null;
+  var p=G.player;
+  p.x = G.roomW/2; p.y = G.roomH-150; p.vx=p.vy=0; p.dashT=0; p.dashCd=0;
+  var isBoss = (G.room % G.roomsPerDepth === 0);
+  G.bossActive = isBoss;
+  var hpMul  = 1 + 0.22*(G.depth-1) + 0.055*(G.room-1);
+  var dmgMul = 1 + 0.13*(G.depth-1) + 0.032*(G.room-1);
+  var i, m;
+  if(isBoss){
+    var bi = Math.min(G.depth-1, BOSSES.length-1);
+    m = makeMob(BOSSES[bi], hpMul*0.96, dmgMul*1.05);
+    m.x = G.roomW/2; m.y = 300; m.boss = true;
+    G.mobs.push(m);
+    var minN = 3 + Math.min(G.depth,5);
+    for(i=0;i<minN;i++){
+      var md = i%2===0 ? MOBS[0] : MOBS[1];
+      m = makeMob(md, hpMul*0.5, dmgMul*0.6);
+      m.x = rnd(120, G.roomW-120); m.y = rnd(140, 460);
+      G.mobs.push(m);
+    }
+    sfx('boss');
+    toast('妖気が満ちる…… 主が現れた', '#e86f6f');
+  } else {
+    var unlocked = Math.min(MOBS.length, 2 + Math.floor(G.depth*0.9) + (G.room>3?1:0));
+    var count = Math.min(6 + Math.floor(G.depth*1.7) + G.room, 26);
+    for(i=0;i<count;i++){
+      var def = MOBS[Math.floor(Math.random()*unlocked)];
+      m = makeMob(def, hpMul, dmgMul);
+      var tries=0;
+      do{
+        m.x = rnd(90, G.roomW-90); m.y = rnd(120, G.roomH-260);
+        tries++;
+      } while(dist2(m.x,m.y,p.x,p.y) < 240*240 && tries<24);
+      G.mobs.push(m);
+    }
+  }
+  updateHud();
+}
+function openGate(){ G.gate = {x:G.roomW/2, y:96, r:46, t:0}; sfx('good'); toast('鳥居が開いた'); }
+function enterGate(){
+  if(G.bossActive){ G.depth++; G.room=1; }
+  else { G.room++; }
+  openReward('room');
+}
+
+/* =========================================================
+   攻撃 / ダメージ
+   ========================================================= */
+function nearestMob(x,y,maxR){
+  var best=null, bd=maxR*maxR;
+  for(var i=0;i<G.mobs.length;i++){
+    var m=G.mobs[i], d=dist2(x,y,m.x,m.y);
+    if(d<bd){ bd=d; best=m; }
+  }
+  return best;
+}
+function sfxHit(){ if(Math.random()<0.5) sfx('hit'); }
+function hitMob(m, dmg, st, srcX, srcY){
+  if(m.dead) return;
+  var crit = Math.random() < st.crit;
+  var d = dmg * (crit ? st.critDmg : 1) * (1 - m.armor) * (1 + (m.boss ? (G.player.bossDmg||0) : 0));
+  m.hp -= d;
+  m.flash = 0.12;
+  G.floats.push({x:m.x+rnd(-8,8), y:m.y-m.r-6, vx:rnd(-14,14), vy:-52, life:0.75, max:0.75,
+    text:(crit?'':'')+fmt(d), color:(crit?'#ffe066':'#fff'), size:crit?19:14});
+  if(st.life>0){ G.player.hp = Math.min(computeStats(G.player).maxHp, G.player.hp + d*st.life); }
+  if(st.knock && !m.boss){
+    var a=Math.atan2(m.y-srcY, m.x-srcX);
+    m.vx += Math.cos(a)*st.knock; m.vy += Math.sin(a)*st.knock;
+  }
+  if(st.aoe){ boom(m.x, m.y, 40+st.aoe*40, d*st.aoe*0.6, '#ffb347', m.id); }
+  sfxHit();
+  if(m.hp<=0) killMob(m);
+}
+function killMob(m){
+  m.dead = true;
+  G.kills++;
+  var p=G.player, st=computeStats(p);
+  dropCoins(m.coin, m.x, m.y);
+  gainXp(m.xp);
+  if(p.deathBoom>0) boom(m.x, m.y, 96, p.deathBoom*(m.boss?3:1), '#ff8c42', 0);
+  if(p.chainDmg>0) chain(m.x, m.y, p.chainDmg);
+  if(m.boss){
+    dropWeapon(m.x, m.y, 1); dropCharm(m.x, m.y);
+    boom(m.x, m.y, 200, 0, '#e8c76f', 0);
+    G.shake = Math.max(G.shake, 16);
+    dropHeart(m.x-30, m.y+20); dropHeart(m.x+30, m.y+20);
+    toast(m.name+' を討ち取った！', '#e8c76f');
+  } else {
+    var luck = p.luck;
+    if(Math.random() < 0.075*luck) dropWeapon(m.x, m.y);
+    if(Math.random() < 0.060*luck) dropCharm(m.x, m.y);
+    if(Math.random() < 0.10) dropHeart(m.x, m.y);
+  }
+  G.fx.push({kind:'burst', x:m.x, y:m.y, r:m.r+8, life:0.3, max:0.3, color:m.color});
+  sfx('kill');
+}
+function boom(x,y,r,dmg,color,skipId){
+  G.fx.push({kind:'boom', x:x, y:y, r:r, life:0.28, max:0.28, color:color||'#ffb347'});
+  if(dmg>0){
+    for(var i=0;i<G.mobs.length;i++){
+      var m=G.mobs[i];
+      if(m.dead || m.id===skipId) continue;
+      if(dist2(x,y,m.x,m.y) < (r+m.r)*(r+m.r)){
+        m.hp -= dmg*(1-m.armor); m.flash=0.12;
+        G.floats.push({x:m.x, y:m.y-m.r, vx:0, vy:-46, life:0.7, max:0.7, text:fmt(dmg), color:color||'#ffb347', size:13});
+        if(m.hp<=0) killMob(m);
+      }
+    }
+  }
+  G.shake = Math.max(G.shake, 4);
+}
+function chain(x,y,dmg){
+  var n=0;
+  var sorted = G.mobs.slice().sort(function(a,b){ return dist2(x,y,a.x,a.y)-dist2(x,y,b.x,b.y); });
+  for(var i=0;i<sorted.length && n<3;i++){
+    var m=sorted[i]; if(m.dead) continue; if(dist2(x,y,m.x,m.y) < 260*260){
+      G.fx.push({kind:'chain', x1:x, y1:y, x2:m.x, y2:m.y, life:0.22, max:0.22, color:'#9fe3ff'});
+      m.hp -= dmg*(1-m.armor); m.flash=0.12; n++;
+      G.floats.push({x:m.x,y:m.y-m.r,vx:0,vy:-40,life:0.6,max:0.6,text:fmt(dmg),color:'#9fe3ff',size:12});
+      if(m.hp<=0) killMob(m);
+    }
+  }
+}
+function damagePlayer(amount, sx, sy){
+  var p=G.player;
+  if(p.inv>0 || G.state!=='play') return;
+  p.hp -= amount;
+  p.inv = 0.35; p.hurtFlash = 0.28;
+  G.shake = Math.max(G.shake, 8);
+  G.floats.push({x:p.x, y:p.y-24, vx:0, vy:-46, life:0.8, max:0.8, text:'-'+fmt(amount), color:'#ff6b6b', size:15});
+  sfx('hurt');
+  if(p.thorns>0 && sx!==undefined){
+    var m = nearestMob(sx,sy,90);
+    if(m && !m.dead){ m.hp -= p.thorns; m.flash=0.12; if(m.hp<=0) killMob(m); }
+  }
+  if(p.hp<=0){ p.hp=0; die(); }
+}
+function doDash(){
+  var p=G.player; if(!p || G.state!=='play') return;
+  if(p.dashCd>0) return;
+  var ang=p.face, mvx=0, mvy=0;
+  for(var id in pts){ var t=pts[id]; if(t.role==='stick'){ mvx+=(t.x-t.ox); mvy+=(t.y-t.oy); } }
+  if(Math.abs(mvx)+Math.abs(mvy)>0.01) ang=Math.atan2(mvy,mvx);
+  p.dashA=ang; p.dashT=0.15; p.dashCd=p.dashCdMax; p.inv=0.32;
+  G.fx.push({kind:'burst', x:p.x, y:p.y, r:p.r+10, life:0.25, max:0.25, color:'#9fe3ff'});
+  sfx('swipe');
+}
+function doAttack(st){
+  var p=G.player;
+  var target = nearestMob(p.x, p.y, Math.max(st.range*2.4, 260));
+  var aim = target ? Math.atan2(target.y-p.y, target.x-p.x) : p.face;
+  if(target) p.face = aim;
+  p.swing = 0.15; p.swingDir = aim;
+  sfx('swipe');
+  if(st.type==='ranged'){
+    var cnt = p.weapon.def.count || 1;
+    var spread = p.weapon.def.spread || 0;
+    for(var i=0;i<cnt;i++){
+      var a = aim + (cnt>1 ? (i-(cnt-1)/2)*spread : 0);
+      G.bullets.push({x:p.x+Math.cos(a)*18, y:p.y+Math.sin(a)*18, vx:Math.cos(a)*p.weapon.def.speed, vy:Math.sin(a)*p.weapon.def.speed,
+        r:6, dmg:st.dmg, pierce:st.pierce||1, hit:[], life:1.3, color:st.elem==='holy'?'#ffe9a8':'#e8dcc8', crit:st.crit, critDmg:st.critDmg, life2:st.life, elem:st.elem});
+    }
+    return;
+  }
+  if(st.type==='thrust'){
+    var range=st.range, maxHit=Math.max(1,st.pierce);
+    var hits=[];
+    for(var k=0;k<G.mobs.length;k++){
+      var m=G.mobs[k]; if(m.dead) continue;
+      var dx=m.x-p.x, dy=m.y-p.y;
+      var proj = dx*Math.cos(aim)+dy*Math.sin(aim);
+      if(proj< -m.r || proj> range+m.r) continue;
+      var perp = Math.abs(-dx*Math.sin(aim)+dy*Math.cos(aim));
+      if(perp < 26+m.r) hits.push({m:m, proj:proj});
+    }
+    hits.sort(function(a,b){ return a.proj-b.proj; });
+    for(var h=0;h<hits.length && h<maxHit;h++) hitMob(hits[h].m, st.dmg, st, p.x, p.y);
+    G.fx.push({kind:'thrust', x:p.x, y:p.y, dir:aim, r:st.range, life:0.16, max:0.16, color:'#fff'});
+    return;
+  }
+  if(st.type==='aoe'){
+    G.fx.push({kind:'ring', x:p.x, y:p.y, r:st.range, life:0.3, max:0.3, color:st.elem==='holy'?'#ffe9a8':'#ffd9a0'});
+    for(var q=0;q<G.mobs.length;q++){
+      var mm=G.mobs[q]; if(mm.dead) continue;
+      if(dist2(p.x,p.y,mm.x,mm.y) < (st.range+mm.r)*(st.range+mm.r)) hitMob(mm, st.dmg, st, p.x, p.y);
+    }
+    return;
+  }
+  // melee 扇形
+  G.fx.push({kind:'slash', x:p.x, y:p.y, dir:aim, r:st.range, arc:st.arc, life:0.18, max:0.18, color:st.elem==='holy'?'#ffe9a8':'#f3e6cf'});
+  for(var j=0;j<G.mobs.length;j++){
+    var mo=G.mobs[j]; if(mo.dead) continue;
+    var d=dist2(p.x,p.y,mo.x,mo.y);
+    if(d > (st.range+mo.r)*(st.range+mo.r)) continue;
+    var ang = Math.atan2(mo.y-p.y, mo.x-p.x);
+    var diff = Math.abs(((ang-aim+Math.PI*3)%TAU)-Math.PI);
+    if(diff <= st.arc/2 + (mo.r/Math.max(st.range,1))*0.6) hitMob(mo, st.dmg, st, p.x, p.y);
+  }
+}
+
+/* =========================================================
+   ドロップ
+   ========================================================= */
+function dropCoins(n, x, y){
+  var cnt = Math.max(1, Math.min(5, Math.round(n/3)));
+  for(var i=0;i<cnt;i++)
+    G.drops.push({kind:'coin', x:x+rnd(-14,14), y:y+rnd(-14,14), v:Math.max(1,Math.round(n/cnt)), r:7, t:0, life:24, vx:rnd(-40,40), vy:rnd(-40,40)});
+}
+function dropHeart(x,y){ G.drops.push({kind:'heart', x:x+rnd(-16,16), y:y+rnd(-16,16), r:9, t:0, life:26, vx:rnd(-30,30), vy:rnd(-30,30)}); }
+function dropWeapon(x,y,force){
+  var p=G.player;
+  var rarity = force ? pickRarity(p.luck*2.2) : pickRarity(p.luck);
+  var def = pick(WEAPONS);
+  var lv = Math.max(1, Math.round(1 + (G.depth-1)*0.8 + Math.random()*1.4));
+  var w = makeWeapon(def.id, lv, rarity);
+  G.drops.push({kind:'weapon', x:x+rnd(-18,18), y:y+rnd(-18,18), w:w, r:11, t:0, life:40, vx:rnd(-30,30), vy:rnd(-30,30)});
+}
+function dropCharm(x,y){
+  G.drops.push({kind:'charm', x:x+rnd(-18,18), y:y+rnd(-18,18), c:pick(CHARMS), r:10, t:0, life:40, vx:rnd(-30,30), vy:rnd(-30,30)});
+}
+function pickup(drop){
+  var p=G.player, st=computeStats(p);
+  if(drop.kind==='coin'){
+    G.coins += drop.v; G.runCoins += drop.v; sfx('coin');
+  } else if(drop.kind==='heart'){
+    p.hp = Math.min(st.maxHp, p.hp + Math.max(12, st.maxHp*0.12)); sfx('good');
+    G.floats.push({x:p.x,y:p.y-26,vx:0,vy:-40,life:0.7,max:0.7,text:'+生命',color:'#7fd18a',size:13});
+  } else if(drop.kind==='weapon'){
+    openLoot(drop);
+  } else if(drop.kind==='charm'){
+    var slot=-1;
+    for(var i=0;i<p.charms.length;i++) if(!p.charms[i]){ slot=i; break; }
+    if(slot<0){
+      // 一番弱い護符を置換
+      var weakest=0, wv=Infinity;
+      for(var j=0;j<p.charms.length;j++){ var v=p.charms[j]?p.charms[j].v:0; if(p.charms[j] && p.charms[j].stat==='hp') v/=30; if(v<wv){wv=v;weakest=j;} }
+      slot=weakest;
+    }
+    p.charms[slot]=drop.c;
+    toast('護符「'+drop.c.name+'」を帯びた（'+drop.c.desc+'）', '#d4af37');
+    sfx('good');
+  }
+}
+
+/* =========================================================
+   更新
+   ========================================================= */
+var TAU2 = Math.PI*2;
+function updatePlayer(dt){
+  var p=G.player, st=computeStats(p);
+  clampHp(p, st);
+  // 入力ベクトル
+  var mvx=0, mvy=0;
+  for(var id in pts){
+    var t=pts[id];
+    if(t.role==='stick'){
+      var dx=t.x-t.ox, dy=t.y-t.oy, len=Math.sqrt(dx*dx+dy*dy);
+      if(len>10){ var k=Math.min(len,62)/62; mvx+=dx/len*k; mvy+=dy/len*k; }
+    }
+  }
+  if(keys['a']||keys['arrowleft']) mvx-=1;
+  if(keys['d']||keys['arrowright']) mvx+=1;
+  if(keys['w']||keys['arrowup']) mvy-=1;
+  if(keys['s']||keys['arrowdown']) mvy+=1;
+  var ml=Math.sqrt(mvx*mvx+mvy*mvy);
+  if(ml>1){ mvx/=ml; mvy/=ml; }
+  p.moving = ml>0.08;
+  if(p.moving && p.swing<=0){ p.face = Math.atan2(mvy,mvx); }
+  // ダッシュ移動
+  if(p.dashT>0){
+    p.x += Math.cos(p.dashA)*640*p.dashT*4*dt;
+    p.y += Math.sin(p.dashA)*640*p.dashT*4*dt;
+  }
+  p.x += mvx*st.move*dt + p.vx*dt;
+  p.y += mvy*st.move*dt + p.vy*dt;
+  p.vx *= Math.pow(0.0016, dt); p.vy *= Math.pow(0.0016, dt);
+  p.x = clamp(p.x, p.r+8, G.roomW-p.r-8);
+  p.y = clamp(p.y, p.r+8, G.roomH-p.r-8);
+  // タイマー
+  if(p.atkTimer>0) p.atkTimer-=dt;
+  if(p.dashCd>0) p.dashCd-=dt;
+  if(p.dashT>0) p.dashT-=dt;
+  if(p.inv>0) p.inv-=dt;
+  if(p.hurtFlash>0) p.hurtFlash-=dt;
+  if(p.swing>0) p.swing-=dt;
+  // 再生
+  if(st.regen>0) p.hp = Math.min(st.maxHp, p.hp + st.regen*dt);
+  if(p.moveRegen>0 && p.moving) p.hp = Math.min(st.maxHp, p.hp + p.moveRegen*dt);
+  // 攻撃
+  if(input.atk && p.atkTimer<=0 && G.hitStop<=0){ doAttack(st); p.atkTimer = st.cd; }
+}
+function updateMobs(dt){
+  var p=G.player;
+  for(var i=G.mobs.length-1;i>=0;i--){
+    var m=G.mobs[i];
+    if(m.dead){ G.mobs.splice(i,1); continue; }
+    if(m.flash>0) m.flash-=dt;
+    if(m.vx||m.vy){ m.x += m.vx*dt; m.y += m.vy*dt; m.vx*=Math.pow(0.002,dt); m.vy*=Math.pow(0.002,dt); }
+    var dx=p.x-m.x, dy=p.y-m.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+    var ux=dx/d, uy=dy/d;
+    if(m.boss){
+      // ボス行動
+      var bd=m.def;
+      var desired = 150;
+      var mv = (d>desired+30) ? 1 : (d<desired-40 ? -0.6 : 0);
+      m.x += ux*m.spd*mv*dt; m.y += uy*m.spd*mv*dt;
+      if(m.chargeT>0){ m.x += m.cvx*dt; m.y += m.cvy*dt; m.chargeT-=dt; }
+      else{
+        m.chargeCd -= dt;
+        if(bd.charge && m.chargeCd<=0 && d<420){ m.chargeCd=bd.charge.cd; m.chargeT=0.45; m.cvx=ux*620; m.cvy=uy*620; m.chargeDmg=bd.charge.dmg; }
+      }
+      m.ringCd -= dt;
+      if(bd.ring && m.ringCd<=0){ m.ringCd = bd.ring.cd; bossRing(m, bd.ring); }
+      if(bd.summon){ m.summonCd -= dt; if(m.summonCd<=0){ m.summonCd=7; summonMinion(m, bd.summon); } }
+    } else {
+      if(m.range>0){
+        if(d > m.range*0.85){ m.x += ux*m.spd*dt; m.y += uy*m.spd*dt; }
+        else if(d < m.range*0.5){ m.x -= ux*m.spd*0.7*dt; m.y -= uy*m.spd*0.7*dt; }
+        m.shootCd -= dt;
+        if(m.shootCd<=0 && d < m.range*1.15){ m.shootCd = rnd(1.4,2.6); shootAt(m, ux, uy); }
+      } else {
+        var spdMul = (m.x!==m.x||!isFinite(m.x))?0:1;
+        m.x += ux*m.spd*dt*spdMul; m.y += uy*m.spd*dt*spdMul;
+      }
+    }
+    m.x = clamp(m.x, m.r, G.roomW-m.r); m.y = clamp(m.y, m.r, G.roomH-m.r);
+    // 接触ダメージ
+    m.hitCd -= dt;
+    var touching = d < (m.r + p.r + 2);
+    if(touching && m.hitCd<=0 && m.chargeT<=0){
+      m.hitCd = 0.75;
+      damagePlayer(m.dmg, m.x, m.y);
+      p.vx += ux*-220; p.vy += uy*-220;
+    } else if(m.chargeT>0 && touching && m.hitCd<=0){
+      m.hitCd = 0.9; damagePlayer(m.chargeDmg||m.dmg*1.6, m.x, m.y);
+    }
+  }
+}
+function bossRing(m, ring){
+  for(var i=0;i<ring.n;i++){
+    var a = (i/ring.n)*TAU + G.t;
+    G.ebullets.push({x:m.x+Math.cos(a)*m.r, y:m.y+Math.sin(a)*m.r, vx:Math.cos(a)*ring.pspeed, vy:Math.sin(a)*ring.pspeed,
+      r:8, dmg:ring.pdmg, life:3.2, color:'#e86f6f'});
+  }
+  sfx('boss');
+  G.shake = Math.max(G.shake, 6);
+}
+function summonMinion(m, type){
+  var def = MOBS.filter(function(x){return x.id===type;})[0] || MOBS[0];
+  var nm = makeMob(def, 1+0.15*(G.depth-1), 1+0.1*(G.depth-1));
+  nm.x = m.x + rnd(-90,90); nm.y = m.y + rnd(-90,90);
+  nm.x=clamp(nm.x,60,G.roomW-60); nm.y=clamp(nm.y,60,G.roomH-60);
+  G.mobs.push(nm);
+}
+function shootAt(m, ux, uy){
+  G.ebullets.push({x:m.x+ux*m.r, y:m.y+uy*m.r, vx:ux*m.pspeed, vy:uy*m.pspeed, r:8, dmg:m.pdmg, life:2.6, color:'#c9a0dc'});
+  sfx('swipe');
+}
+function updateBullets(dt){
+  for(var i=G.bullets.length-1;i>=0;i--){
+    var b=G.bullets[i];
+    b.x += b.vx*dt; b.y += b.vy*dt; b.life -= dt;
+    if(b.life<=0 || b.x<0 || b.y<0 || b.x>G.roomW || b.y>G.roomH){ G.bullets.splice(i,1); continue; }
+    for(var j=0;j<G.mobs.length;j++){
+      var m=G.mobs[j];
+      if(m.dead || b.hit.indexOf(m.id)>=0) continue;
+      if(dist2(b.x,b.y,m.x,m.y) < (b.r+m.r)*(b.r+m.r)){
+        b.hit.push(m.id);
+        var st={crit:b.crit, critDmg:b.critDmg, life:b.life2, knock:90, aoe:0, elem:b.elem};
+        hitMob(m, b.dmg, st, b.x-b.vx*0.02, b.y-b.vy*0.02);
+        b.pierce--;
+        if(b.pierce<=0){ G.bullets.splice(i,1); break; }
+      }
+    }
+  }
+  for(var k=G.ebullets.length-1;k>=0;k--){
+    var e=G.ebullets[k];
+    e.x += e.vx*dt; e.y += e.vy*dt; e.life -= dt;
+    if(e.life<=0 || e.x<-40 || e.y<-40 || e.x>G.roomW+40 || e.y>G.roomH+40){ G.ebullets.splice(k,1); continue; }
+    var p=G.player;
+    if(dist2(e.x,e.y,p.x,p.y) < (e.r+p.r)*(e.r+p.r)){
+      damagePlayer(e.dmg, e.x, e.y);
+      G.ebullets.splice(k,1);
+    }
+  }
+}
+function updateDrops(dt){
+  var p=G.player, st=computeStats(p);
+  for(var i=G.drops.length-1;i>=0;i--){
+    var d=G.drops[i];
+    d.t += dt; d.life -= dt;
+    if(d.life<=0){ G.drops.splice(i,1); continue; }
+    d.x += (d.vx||0)*dt; d.y += (d.vy||0)*dt; var _dec=Math.pow(0.02,dt); d.vx=(d.vx||0)*_dec; d.vy=(d.vy||0)*_dec;
+    var dd = Math.sqrt(dist2(d.x,d.y,p.x,p.y))||1;
+    var mag = 52*st.magnet;
+    if(d.kind!=='weapon' && d.kind!=='charm'){
+      if(dd < 190*st.magnet){
+        var f = 340*(1 - dd/(190*st.magnet));
+        d.x += (p.x-d.x)/dd*f*dt; d.y += (p.y-d.y)/dd*f*dt;
+      }
+    } else if(dd < 150*st.magnet){
+      var f2 = 190*(1-dd/(150*st.magnet));
+      d.x += (p.x-d.x)/dd*f2*dt; d.y += (p.y-d.y)/dd*f2*dt;
+    }
+    if(dd < p.r + d.r){
+      G.drops.splice(i,1);
+      pickup(d);
+      if(d.kind==='weapon' || d.kind==='charm') return;
+    }
+  }
+}
+function updateFx(dt){
+  for(var i=G.fx.length-1;i>=0;i--){ var f=G.fx[i]; f.life-=dt; if(f.life<=0) G.fx.splice(i,1); }
+  for(var j=G.floats.length-1;j>=0;j--){
+    var fl=G.floats[j];
+    fl.life-=dt; fl.x+=fl.vx*dt; fl.y+=fl.vy*dt; fl.vy += 46*dt;
+    if(fl.life<=0) G.floats.splice(j,1);
+  }
+}
+function updateGate(dt){
+  if(G.gate){
+    G.gate.t += dt;
+    var p=G.player;
+    if(dist2(p.x,p.y,G.gate.x,G.gate.y) < (G.gate.r)*(G.gate.r)) { enterGate(); }
+  } else if(G.mobs.length===0 && G.state==='play'){
+    openGate();
+  }
+}
+function updateCamera(dt){
+  var p=G.player;
+  var tx = p.x - W/2, ty = p.y - H/2;
+  var maxX = Math.max(0, G.roomW - W), maxY = Math.max(0, G.roomH - H);
+  tx = clamp(tx, 0, maxX); ty = clamp(ty, 0, maxY);
+  if(G.roomW < W) tx = (G.roomW - W)/2;
+  if(G.roomH < H) ty = (G.roomH - H)/2;
+  G.cam.x = lerp(G.cam.x, tx, Math.min(1, dt*8));
+  G.cam.y = lerp(G.cam.y, ty, Math.min(1, dt*8));
+}
+
+/* =========================================================
+   描画
+   ========================================================= */
+function drawWorld(){
+  var roomW=G.roomW, roomH=G.roomH;
+  ctx.save();
+  var sh = G.shake;
+  var ox = sh>0 ? rnd(-sh,sh) : 0, oy = sh>0 ? rnd(-sh,sh) : 0;
+  ctx.translate(-G.cam.x+ox, -G.cam.y+oy);
+  // 床タイル
+  var T=64;
+  for(var gy=0; gy<roomH; gy+=T){
+    for(var gx=0; gx<roomW; gx+=T){
+      var q=((gx/T)|0)+((gy/T)|0);
+      ctx.fillStyle = (q%2===0) ? '#1b1410' : '#171110';
+      ctx.fillRect(gx, gy, T, T);
+    }
+  }
+  ctx.strokeStyle='rgba(212,175,55,0.05)'; ctx.lineWidth=1;
+  for(var lx=0; lx<=roomW; lx+=T){ ctx.beginPath(); ctx.moveTo(lx,0); ctx.lineTo(lx,roomH); ctx.stroke(); }
+  for(var ly=0; ly<=roomH; ly+=T){ ctx.beginPath(); ctx.moveTo(0,ly); ctx.lineTo(roomW,ly); ctx.stroke(); }
+  // 壁
+  ctx.strokeStyle='#3a2a20'; ctx.lineWidth=18; ctx.strokeRect(0,0,roomW,roomH);
+  ctx.strokeStyle='rgba(212,175,55,0.25)'; ctx.lineWidth=2; ctx.strokeRect(10,10,roomW-20,roomH-20);
+  // 装飾の灯篭
+  drawLantern(70, 120); drawLantern(roomW-70, 120);
+  drawLantern(70, roomH-120); drawLantern(roomW-70, roomH-120);
+  // 鳥居
+  if(G.gate) drawGate(G.gate);
+  // ドロップ
+  for(var i=0;i<G.drops.length;i++) drawDrop(G.drops[i]);
+  // 弾
+  for(var b=0;b<G.bullets.length;b++){
+    var bl=G.bullets[b];
+    ctx.fillStyle=bl.color; ctx.beginPath(); ctx.arc(bl.x, bl.y, bl.r, 0, TAU); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.5; ctx.stroke();
+  }
+  for(var e=0;e<G.ebullets.length;e++){
+    var eb=G.ebullets[e];
+    ctx.fillStyle=eb.color; ctx.beginPath(); ctx.arc(eb.x, eb.y, eb.r, 0, TAU); ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,.4)'; ctx.lineWidth=1.5; ctx.stroke();
+  }
+  // 敵
+  for(var m=0;m<G.mobs.length;m++) drawMob(G.mobs[m]);
+  // プレイヤー
+  drawPlayer(G.player);
+  // FX
+  for(var f=0;f<G.fx.length;f++) drawFx(G.fx[f]);
+  // ダメージ数字
+  for(var fl=0;fl<G.floats.length;fl++){
+    var fo=G.floats[fl];
+    ctx.globalAlpha = Math.min(1, fo.life/fo.max*1.6);
+    ctx.fillStyle=fo.color; ctx.font='700 '+fo.size+'px "Hiragino Mincho ProN",serif';
+    ctx.textAlign='center'; ctx.fillText(fo.text, fo.x, fo.y);
+    ctx.globalAlpha=1;
+  }
+  ctx.restore();
+}
+function drawLantern(x,y){
+  ctx.fillStyle='rgba(120,30,30,.55)';
+  ctx.beginPath(); ctx.ellipse(x, y, 15, 20, 0, 0, TAU); ctx.fill();
+  ctx.strokeStyle='rgba(212,175,55,.35)'; ctx.lineWidth=1.5; ctx.stroke();
+}
+function drawGate(g){
+  var pulse = 0.6 + 0.4*Math.sin(G.t*4);
+  ctx.save(); ctx.translate(g.x, g.y);
+  ctx.globalAlpha = 0.35 + 0.25*pulse;
+  var grad = ctx.createRadialGradient(0,0,4, 0,0,g.r*1.7);
+  grad.addColorStop(0,'rgba(255,220,140,.9)'); grad.addColorStop(1,'rgba(255,180,60,0)');
+  ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(0,0,g.r*1.7,0,TAU); ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.fillStyle='#c1272d';
+  ctx.fillRect(-g.r, -6, g.r*2, 10);
+  ctx.fillRect(-g.r*0.86, 6, g.r*1.72, 9);
+  ctx.fillRect(-g.r*0.72, -34, 10, 74);
+  ctx.fillRect(g.r*0.72-10, -34, 10, 74);
+  ctx.fillStyle='#d4af37';
+  ctx.fillRect(-g.r*1.05, -30, g.r*2.1, 9);
+  ctx.restore();
+}
+function drawPlayer(p){
+  if(!p) return; var st=computeStats(p);
+  ctx.save(); ctx.translate(p.x, p.y);
+  if(p.dashT>0){ ctx.globalAlpha=0.8; }
+  // 影
+  ctx.fillStyle='rgba(0,0,0,.4)'; ctx.beginPath(); ctx.ellipse(0, p.r*0.85, p.r*1.05, p.r*0.5, 0, 0, TAU); ctx.fill();
+  // 斬撃の弧
+  if(p.swing>0){
+    var a0=p.swingDir-p.arcA/2, a1=p.swingDir+p.arcA/2;
+    var rng = (p.swingRange||60);
+    ctx.strokeStyle='rgba(255,245,220,'+(p.swing/0.15*0.85)+')';
+    ctx.lineWidth=7; ctx.beginPath(); ctx.arc(0,0,rng*0.85, a0, a1); ctx.stroke();
+  }
+  // 体（着物）
+  ctx.fillStyle = p.hurtFlash>0 ? '#ff8080' : '#2f4f6f';
+  ctx.beginPath(); ctx.arc(0,0,p.r,0,TAU); ctx.fill();
+  ctx.strokeStyle='#d4af37'; ctx.lineWidth=2; ctx.stroke();
+  // 頭
+  ctx.fillStyle='#e8d0b0'; ctx.beginPath(); ctx.arc(0,-2,p.r*0.52,0,TAU); ctx.fill();
+  // 武器
+  var ang=p.face;
+  ctx.strokeStyle='#f0ead8'; ctx.lineWidth=4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(Math.cos(ang)*p.r*0.6, Math.sin(ang)*p.r*0.6);
+  ctx.lineTo(Math.cos(ang)*(p.r+18), Math.sin(ang)*(p.r+18)); ctx.stroke();
+  ctx.restore();
+}
+function drawMob(m){
+  var st=null;
+  ctx.save(); ctx.translate(m.x, m.y);
+  ctx.fillStyle='rgba(0,0,0,.4)'; ctx.beginPath(); ctx.ellipse(0, m.r*0.85, m.r*1.0, m.r*0.45, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = m.flash>0 ? '#ffffff' : m.color;
+  ctx.beginPath();
+  if(m.def.id==='kappa' || m.def.id==='gumo'){
+    ctx.moveTo(0,-m.r); ctx.lineTo(m.r*0.9, m.r*0.7); ctx.lineTo(-m.r*0.9, m.r*0.7); ctx.closePath();
+  } else if(m.boss){
+    ctx.arc(0,0,m.r,0,TAU);
+  } else {
+    ctx.arc(0,0,m.r,0,TAU);
+  }
+  ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=2; ctx.stroke();
+  // 角（鬼）
+  if(m.def.id==='oni'||m.def.id==='kooni'||m.def.id==='hannya'||m.boss){
+    ctx.strokeStyle='#f3e6cf'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(-m.r*0.5,-m.r*0.7); ctx.lineTo(-m.r*0.75,-m.r*1.35); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(m.r*0.5,-m.r*0.7); ctx.lineTo(m.r*0.75,-m.r*1.35); ctx.stroke();
+  }
+  // 目
+  ctx.fillStyle='#ffe066';
+  ctx.beginPath(); ctx.arc(-m.r*0.32,-m.r*0.12, m.r*0.16, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.arc(m.r*0.32,-m.r*0.12, m.r*0.16, 0, TAU); ctx.fill();
+  ctx.fillStyle='#000';
+  ctx.beginPath(); ctx.arc(-m.r*0.32,-m.r*0.12, m.r*0.07, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.arc(m.r*0.32,-m.r*0.12, m.r*0.07, 0, TAU); ctx.fill();
+  ctx.restore();
+  // HPバー
+  if(m.hp < m.maxHp){
+    var w = m.boss? Math.min(360, W*0.7) : m.r*2;
+    var bx = m.boss ? (G.cam.x + W/2 - w/2) : (m.x - m.r);
+    var by = m.boss ? (G.cam.y + H - 84) : (m.y - m.r - 12);
+    ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(bx-1, by-1, w+2, m.boss?12:6);
+    ctx.fillStyle= m.boss? '#c1272d' : '#e05b5b';
+    ctx.fillRect(bx, by, w*Math.max(0,m.hp/m.maxHp), m.boss?10:4);
+    if(m.boss){
+      ctx.fillStyle='#e8dcc8'; ctx.font='700 13px "Hiragino Mincho ProN",serif'; ctx.textAlign='center';
+      ctx.fillText(m.name, G.cam.x + W/2, by-6);
+    }
+  }
+}
+function drawDrop(d){
+  ctx.save(); ctx.translate(d.x, d.y);
+  var bob = Math.sin(d.t*5)*3;
+  if(d.kind==='coin'){
+    ctx.fillStyle='#e8c76f'; ctx.beginPath(); ctx.ellipse(0,bob,d.r,d.r*0.75,0,0,TAU); ctx.fill();
+    ctx.fillStyle='rgba(120,90,20,.6)'; ctx.beginPath(); ctx.arc(0,bob,d.r*0.32,0,TAU); ctx.fill();
+  } else if(d.kind==='heart'){
+    ctx.fillStyle='#e0575b'; ctx.beginPath(); ctx.arc(-4,bob-2,5.5,0,TAU); ctx.arc(4,bob-2,5.5,0,TAU); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-9,bob); ctx.lineTo(0,bob+11); ctx.lineTo(9,bob); ctx.closePath(); ctx.fill();
+  } else if(d.kind==='weapon'){
+    var col = RARITY[d.w.rarity].color;
+    ctx.globalAlpha=0.5; ctx.fillStyle=col; ctx.beginPath(); ctx.arc(0,bob,d.r*1.5,0,TAU); ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle=col; ctx.beginPath(); ctx.arc(0,bob,d.r*0.6,0,TAU); ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-8,bob+8); ctx.lineTo(8,bob-8); ctx.stroke();
+  } else if(d.kind==='charm'){
+    ctx.fillStyle='#d4af37'; ctx.fillRect(-8,bob-10,16,20);
+    ctx.fillStyle='#7a1010'; ctx.fillRect(-6,bob-8,12,16);
+  }
+  ctx.restore();
+}
+function drawFx(f){
+  var k = f.life/f.max;
+  ctx.save();
+  if(f.kind==='slash'){
+    ctx.globalAlpha=k; ctx.strokeStyle=f.color; ctx.lineWidth=10*k+2; ctx.lineCap='round';
+    ctx.beginPath(); ctx.arc(f.x, f.y, f.r*0.85, f.dir-f.arc/2, f.dir+f.arc/2); ctx.stroke();
+  } else if(f.kind==='thrust'){
+    ctx.globalAlpha=k; ctx.strokeStyle=f.color; ctx.lineWidth=8*k+2; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x+Math.cos(f.dir)*f.r, f.y+Math.sin(f.dir)*f.r); ctx.stroke();
+  } else if(f.kind==='ring'){
+    ctx.globalAlpha=k*0.85; ctx.strokeStyle=f.color; ctx.lineWidth=6*k+2;
+    ctx.beginPath(); ctx.arc(f.x,f.y, f.r*(1.15-k*0.25), 0, TAU); ctx.stroke();
+  } else if(f.kind==='boom'){
+    ctx.globalAlpha=k*0.8; var g=ctx.createRadialGradient(f.x,f.y,2, f.x,f.y,f.r*(1.3-k*0.3));
+    g.addColorStop(0, f.color); g.addColorStop(1,'rgba(255,120,40,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(f.x,f.y,f.r*(1.3-k*0.3),0,TAU); ctx.fill();
+  } else if(f.kind==='burst'){
+    ctx.globalAlpha=k; ctx.strokeStyle=f.color; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.arc(f.x,f.y, f.r*(1.6-k*0.6),0,TAU); ctx.stroke();
+  } else if(f.kind==='chain'){
+    ctx.globalAlpha=k; ctx.strokeStyle=f.color; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(f.x1,f.y1);
+    var mx=(f.x1+f.x2)/2 + rnd(-10,10), my=(f.y1+f.y2)/2 + rnd(-10,10);
+    ctx.lineTo(mx,my); ctx.lineTo(f.x2,f.y2); ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawHud(){
+  var p=G.player; if(!p) return;
+  var st=computeStats(p);
+  // XPバー（最上部）
+  var xpW = W * clamp(G.xp/G.xpNeed,0,1);
+  ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillRect(0,0,W,5);
+  ctx.fillStyle='#d4af37'; ctx.fillRect(0,0,xpW,5);
+  // HP
+  var pad=14, top=TOPPAD+16;
+  var bw = Math.min(220, W*0.44), bh=15;
+  ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(pad-2, top-2, bw+4, bh+4);
+  ctx.fillStyle='#3a1416'; ctx.fillRect(pad, top, bw, bh);
+  var hpFrac = clamp(p.hp/st.maxHp,0,1);
+  var g=ctx.createLinearGradient(pad,0,pad+bw,0); g.addColorStop(0,'#8c1c20'); g.addColorStop(1,'#e04b46');
+  ctx.fillStyle=g; ctx.fillRect(pad, top, bw*hpFrac, bh);
+  ctx.strokeStyle='rgba(212,175,55,.5)'; ctx.lineWidth=1; ctx.strokeRect(pad, top, bw, bh);
+  ctx.fillStyle='#f3e6cf'; ctx.font='700 11px "Hiragino Mincho ProN",serif'; ctx.textAlign='left';
+  ctx.fillText(fmt(Math.ceil(p.hp))+' / '+fmt(st.maxHp), pad+6, top+bh-4);
+  // Lv
+  ctx.fillStyle='#d4af37'; ctx.font='700 13px "Hiragino Mincho ProN",serif';
+  ctx.fillText('第 '+G.level+' 位', pad, top+bh+18);
+  // 階層
+  ctx.textAlign='center'; ctx.fillStyle='#e8dcc8'; ctx.font='700 15px "Hiragino Mincho ProN",serif';
+  ctx.fillText('第 '+G.depth+' 層  '+(G.room)+' / '+G.roomsPerDepth, W/2, top+13);
+  // 小判
+  ctx.textAlign='right'; ctx.fillStyle='#e8c76f'; ctx.font='700 14px "Hiragino Mincho ProN",serif';
+  ctx.fillText('小判 '+fmt(G.coins), W-58, top+13);
+  // ポーズボタン
+  var pb=pauseBtn();
+  ctx.fillStyle='rgba(0,0,0,.5)'; ctx.beginPath(); ctx.arc(pb.x,pb.y,pb.r,0,TAU); ctx.fill();
+  ctx.strokeStyle='rgba(212,175,55,.6)'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.fillStyle='#e8dcc8'; ctx.fillRect(pb.x-6,pb.y-8,4,16); ctx.fillRect(pb.x+2,pb.y-8,4,16);
+  // 操作ボタン
+  drawBtn(ATK, '斬', '#c1272d');
+  drawBtn(DASH, '疾', '#1f4e5f');
+  // スティック
+  for(var id in pts){
+    var t=pts[id];
+    if(t.role==='stick'){
+      ctx.strokeStyle='rgba(232,220,200,.25)'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.arc(t.ox,t.oy,62,0,TAU); ctx.stroke();
+      var dx=t.x-t.ox, dy=t.y-t.oy, l=Math.sqrt(dx*dx+dy*dy)||1, k=Math.min(l,62);
+      ctx.fillStyle='rgba(232,220,200,.35)';
+      ctx.beginPath(); ctx.arc(t.ox+dx/l*k, t.oy+dy/l*k, 26, 0, TAU); ctx.fill();
+      ctx.strokeStyle='rgba(212,175,55,.5)'; ctx.lineWidth=2; ctx.stroke();
+    }
+  }
+  // ダッシュCD
+  if(p.dashCd>0){
+    ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.arc(DASH.x,DASH.y,DASH.r-2, -Math.PI/2, -Math.PI/2 + TAU*(p.dashCd/p.dashCdMax)); ctx.stroke();
+  }
+}
+function drawBtn(b, label, color){
+  ctx.fillStyle=color; ctx.globalAlpha=0.82;
+  ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,TAU); ctx.fill(); ctx.globalAlpha=1;
+  ctx.strokeStyle='rgba(255,235,210,.55)'; ctx.lineWidth=2.5; ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.font='700 '+(b.r*0.85)+'px "Hiragino Mincho ProN",serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(label, b.x, b.y+1);
+  ctx.textBaseline='alphabetic';
+}
+function render(){
+  ctx.fillStyle='#0d0507'; ctx.fillRect(0,0,W,H);
+  if(G.state==='title' || G.state==='shrine'){ G.shake=0; return; }
+  drawWorld();
+  drawHud();
+  G.shake *= Math.pow(0.001, G.last?G.last:0.016);
+  if(G.shake<0.5) G.shake=0;
+}
+
+/* =========================================================
+   報酬（レベルアップ / 部屋クリア）
+   ========================================================= */
+function updateHud(){ /* Canvas HUDは毎フレーム自動描画 */ }
+var _rawDoAttack = null;
+function genRewards(kind){
+  var out=[];
+  if(kind==='level'){
+    var pool=PERKS.slice();
+    for(var i=0;i<3 && pool.length;i++) out.push({type:'perk', perk:pool.splice(Math.floor(Math.random()*pool.length),1)[0]});
+    return out;
+  }
+  out.push({type:'perk', perk:pick(PERKS)});
+  while(out.length<3){
+    var t = pick(['perk','weapon','charm','coins','heal','weapon']);
+    if(t==='perk'){ out.push({type:'perk', perk:pick(PERKS)}); continue; }
+    if(t==='weapon'){
+      var lv=Math.max(1,Math.round(1+(G.depth-1)*0.9+Math.random()*1.2));
+      out.push({type:'weapon', w:makeWeapon(pick(WEAPONS).id, lv, pickRarity(G.player.luck))});
+      continue;
+    }
+    if(t==='charm'){ out.push({type:'charm', c:pick(CHARMS)}); continue; }
+    if(t==='coins'){ out.push({type:'coins', amount: Math.round(24 + G.depth*16 + G.room*6)}); continue; }
+    out.push({type:'heal'});
+  }
+  return out;
+}
+function rewardCardHTML(c){
+  if(c.type==='perk')
+    return {icon:c.perk.icon, name:c.perk.name, desc:c.perk.desc, extra:'加護', color:'#d4af37'};
+  if(c.type==='weapon'){
+    var r=RARITY[c.w.rarity], s=weaponStats(c.w);
+    return {icon:c.w.def.icon, name:c.w.name, desc:'威力 '+fmt(s.dmg)+' ／ '+(1/s.cd).toFixed(2)+'回/秒',
+      extra:r.name+'品・'+wpTypeLabel(c.w.def.type)+(c.w.affixes.length?' ／ '+c.w.affixes.map(function(a){return a.short;}).join('・'):''), color:r.color};
+  }
+  if(c.type==='charm')
+    return {icon:c.c.icon, name:c.c.name, desc:c.c.desc, extra:'護符', color:'#7fd18a'};
+  if(c.type==='coins')
+    return {icon:'🪙', name:'小判 '+fmt(c.amount), desc:'財を積む。神社で加護に替えられる。', extra:'財宝', color:'#e8c76f'};
+  return {icon:'🌸', name:'生命の回復', desc:'生命力を全回復する。', extra:'回復', color:'#e0575b'};
+}
+function openReward(kind){
+  G.rewardKind=kind;
+  var choices = genRewards(kind);
+  document.getElementById('rewardSub').textContent = (kind==='level') ? ('第 '+G.level+' 位に到達 ― 加護を選べ') : '一つの報いを選べ';
+  var wrap=document.getElementById('rewardCards'); wrap.innerHTML='';
+  choices.forEach(function(c){
+    var info=rewardCardHTML(c);
+    var el=document.createElement('div'); el.className='card';
+    el.innerHTML='<div class="rarbadge" style="color:'+info.color+'">'+esc(info.extra)+'</div>'+
+      '<div class="ci">'+info.icon+'</div><div class="cn" style="color:'+info.color+'">'+esc(info.name)+'</div>'+
+      '<div class="cd">'+esc(info.desc)+'</div>';
+    el.onclick=function(){ applyReward(c); };
+    wrap.appendChild(el);
+  });
+  G.state='reward';
+  hideAll(); showScreen('scrReward');
+}
+function applyReward(c){
+  var p=G.player;
+  if(c.type==='perk'){ c.perk.apply(p); toast('加護「'+c.perk.name+'」を得た','#d4af37'); }
+  else if(c.type==='weapon'){ p.weapon=c.w; toast('「'+c.w.name+'」を携えた', RARITY[c.w.rarity].color); sfx('good'); }
+  else if(c.type==='charm'){
+    var slot=-1; for(var i=0;i<p.charms.length;i++) if(!p.charms[i]){ slot=i; break; }
+    if(slot<0) slot=0;
+    p.charms[slot]=c.c; toast('護符「'+c.c.name+'」を帯びた','#7fd18a');
+  }
+  else if(c.type==='coins'){ G.coins+=c.amount; G.runCoins+=c.amount; toast('小判 +'+fmt(c.amount),'#e8c76f'); }
+  else if(c.type==='heal'){ var st=computeStats(p); p.hp=st.maxHp; toast('生命力が満ちた','#7fd18a'); }
+  var wasLevel = (G.rewardKind==='level');
+  hideAll();
+  if(wasLevel){ G.state='play'; }
+  else { spawnRoom(); G.state='play'; }
+  updateHud();
+}
+function skipReward(){
+  hideAll();
+  if(G.rewardKind==='level'){ G.state='play'; }
+  else { spawnRoom(); G.state='play'; }
+}
+
+/* =========================================================
+   拾得（装備比較）
+   ========================================================= */
+function statRowsHTML(w){
+  var s=weaponStats(w);
+  var html='<div style="margin-top:8px">';
+  html+='<div class="statline"><span>威力</span><b>'+fmt(s.dmg)+'</b></div>';
+  html+='<div class="statline"><span>攻撃速度</span><b>'+(1/s.cd).toFixed(2)+' 回/秒</b></div>';
+  html+='<div class="statline"><span>射程</span><b>'+(s.range?fmt(s.range):'—')+'</b></div>';
+  html+='<div class="statline"><span>会心</span><b>'+(s.crit*100).toFixed(0)+'% / x'+(1.6+s.critDmg).toFixed(2)+'</b></div>';
+  html+='</div>';
+  if(w.affixes.length){
+    html+='<div style="margin-top:6px">';
+    w.affixes.forEach(function(a){ html+='<span class="tag">'+esc(a.t)+' '+esc(AFFIX_DESC[a.k]||a.k)+' +'+Math.round(a.v*100)+'%</span>'; });
+    html+='</div>';
+  }
+  return html;
+}
+function openLoot(drop){
+  var p=G.player, w=drop.w, cur=p.weapon, rar=RARITY[w.rarity];
+  document.getElementById('lootTitle').textContent='拾 得';
+  var body=document.getElementById('lootBody');
+  body.innerHTML =
+    '<div style="color:'+rar.color+';font-size:19px;font-weight:700;letter-spacing:.06em">'+esc(w.name)+'</div>'+
+    '<div class="sub">'+esc(rar.name)+'品 ／ '+esc(wpTypeLabel(w.def.type))+'</div>'+
+    statRowsHTML(w)+
+    '<div class="rule"></div>'+
+    '<div class="sub">現在の得物</div>'+
+    '<div style="font-size:14px;color:'+RARITY[cur.rarity].color+'">'+esc(cur.name)+'</div>'+
+    statRowsHTML(cur);
+  var diff = weaponPower(w)-weaponPower(cur);
+  var sub=document.getElementById('lootSub');
+  sub.textContent = (diff>=0?'攻撃効率 +':'攻撃効率 −')+fmt(Math.abs(diff))+(diff>=0?' 上昇':' 低下');
+  sub.style.color = diff>=0 ? '#7fd18a' : '#e86f6f';
+  G.state='loot'; hideAll(); showScreen('scrLoot');
+}
+function applyLoot(equip){
+  var p=G.player;
+  if(equip && G.lootItem && G.lootItem.w){
+    p.weapon=G.lootItem.w;
+    toast('「'+p.weapon.name+'」を携えた', RARITY[p.weapon.rarity].color);
+    sfx('good');
+  }
+  G.lootItem=null;
+  hideAll(); G.state='play';
+}
+
+/* =========================================================
+   死亡 / 撤退 / ポーズ
+   ========================================================= */
+function die(){
+  var p=G.player;
+  G.state='dead';
+  G.meta.coins += Math.round(G.runCoins);
+  G.meta.runs = (G.meta.runs||0)+1;
+  G.meta.best = Math.max(G.meta.best||1, G.depth);
+  saveMeta();
+  document.getElementById('dDepth').textContent = '第 '+G.depth+' 層（'+G.room+'/'+G.roomsPerDepth+'）';
+  document.getElementById('dKills').textContent = fmt(G.kills)+' 体';
+  document.getElementById('dCoins').textContent = fmt(G.runCoins)+' 両（持ち帰り）';
+  document.getElementById('dWeapon').textContent = p.weapon.name;
+  document.getElementById('deadHint').textContent = '小判は持ち帰られた。神社で加護を買い、再び潜れ。';
+  hideAll(); showScreen('scrDead');
+}
+function quitRun(){
+  G.state='title';
+  hideAll(); renderTitle(); showScreen('scrTitle');
+}
+function buildPause(){
+  var p=G.player, st=computeStats(p);
+  document.getElementById('pauseStats').innerHTML =
+    '第 '+G.depth+' 層 '+G.room+'/'+G.roomsPerDepth+' ／ 討伐 '+G.kills+' 体<br>' +
+    '威力 '+fmt(st.dmg)+' ／ '+(1/st.cd).toFixed(2)+'回/秒 ／ 会心 '+(st.crit*100).toFixed(0)+'%<br>'+
+    '生命力 '+fmt(Math.ceil(p.hp))+'/'+fmt(st.maxHp)+' ／ 移動 '+fmt(st.move);
+  var g=document.getElementById('pauseGear');
+  var html='<div class="statline"><span>得物</span><b style="color:'+RARITY[p.weapon.rarity].color+'">'+esc(p.weapon.name)+'</b></div>';
+  for(var i=0;i<p.charms.length;i++){
+    var c=p.charms[i];
+    html+='<div class="statline"><span>護符 '+(i+1)+'</span><b>'+(c?esc(c.name):'—')+'</b></div>';
+  }
+  g.innerHTML=html;
+}
+function togglePause(){ if(G.state==='play'){ buildPause(); G.state='pause'; hideAll(); showScreen('scrPause'); } }
+function resumeGame(){ hideAll(); G.state='play'; }
+
+/* =========================================================
+   神社（永続強化）
+   ========================================================= */
+function renderShrine(){
+  document.getElementById('shrineCoin').textContent = fmt(G.meta.coins);
+  var wrap=document.getElementById('metaList'); wrap.innerHTML='';
+  META_UPG.forEach(function(u){
+    var lv=metaLv(u.id), cost=metaCost(u), maxed=lv>=u.max, can=!maxed && G.meta.coins>=cost;
+    var row=document.createElement('div'); row.className='metaRow';
+    row.innerHTML='<div class="mname">'+esc(u.name)+'<br><span class="sub" style="font-size:11px">'+esc(u.desc)+'</span></div>'+
+      '<div class="mlv">Lv '+lv+'/'+u.max+'</div>';
+    var b=document.createElement('button'); b.className='mbtn';
+    b.textContent = maxed ? '極' : (fmt(cost)+'両');
+    b.disabled = !can;
+    b.onclick=function(){
+      var c=metaCost(u);
+      if(metaLv(u.id)>=u.max) return;
+      if(G.meta.coins < c) { toast('小判が足りぬ','#e86f6f'); return; }
+      G.meta.coins -= c; G.meta.up[u.id]=metaLv(u.id)+1; saveMeta(); sfx('good');
+      toast(u.name+' が高まった','#d4af37'); renderShrine();
+    };
+    row.appendChild(b); wrap.appendChild(row);
+  });
+}
+
+/* =========================================================
+   入力
+   ========================================================= */
+var pts={}, keys={}, input={atk:false};
+function evPos(e){
+  var r=cv.getBoundingClientRect();
+  var cx = (e.clientX!==undefined)?e.clientX:e.touches[0].clientX;
+  var cy = (e.clientY!==undefined)?e.clientY:e.touches[0].clientY;
+  return {x:cx-r.left, y:cy-r.top};
+}
+function hasStick(){ for(var id in pts){ if(pts[id].role==='stick') return true; } return false; }
+function refreshAtk(){ var any=false; for(var id in pts){ if(pts[id].role==='atk') any=true; } input.atk=any||keys['j']||keys[' ']||keys['enter']; }
+function onDown(e){
+  if(G.state!=='play') return;
+  var p=evPos(e), pb=pauseBtn();
+  if(dist2(p.x,p.y,pb.x,pb.y) < pb.r*pb.r*1.7){ togglePause(); e.preventDefault(); return; }
+  if(e.pointerType==='mouse'){
+    if(e.button===2){ doDash(); e.preventDefault(); return; }
+    pts[e.pointerId]={role:'atk'}; refreshAtk(); e.preventDefault(); return;
+  }
+  if(dist2(p.x,p.y,ATK.x,ATK.y) < ATK.r*ATK.r*1.5){ pts[e.pointerId]={role:'atk'}; refreshAtk(); e.preventDefault(); return; }
+  if(dist2(p.x,p.y,DASH.x,DASH.y) < DASH.r*DASH.r*1.9){ pts[e.pointerId]={role:'dash'}; doDash(); e.preventDefault(); return; }
+  if(p.x < W*0.62 && !hasStick()){ pts[e.pointerId]={role:'stick', ox:p.x, oy:p.y, x:p.x, y:p.y}; e.preventDefault(); }
+}
+function onMove(e){
+  var t=pts[e.pointerId]; if(!t || t.role!=='stick') return;
+  var p=evPos(e); var dx=p.x-t.ox, dy=p.y-t.oy, l=Math.sqrt(dx*dx+dy*dy);
+  var max=62; if(l>max){ dx=dx/l*max; dy=dy/l*max; }
+  t.x=t.ox+dx; t.y=t.oy+dy;
+  e.preventDefault();
+}
+function onUp(e){
+  var t=pts[e.pointerId];
+  delete pts[e.pointerId];
+  refreshAtk();
+}
+cv.addEventListener('pointerdown', onDown, {passive:false});
+cv.addEventListener('pointermove', onMove, {passive:false});
+window.addEventListener('pointerup', onUp, {passive:false});
+window.addEventListener('pointercancel', onUp, {passive:false});
+cv.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+document.addEventListener('gesturestart', function(e){ e.preventDefault(); });
+
+window.addEventListener('keydown', function(e){
+  var k=e.key.toLowerCase();
+  if(k==='escape' || k==='p'){ if(G.state==='play') togglePause(); else if(G.state==='pause') resumeGame(); }
+  if(G.state!=='play') return;
+  keys[k]=true; refreshAtk();
+  if(k==='j'||k===' '||k==='enter'){ input.atk=true; }
+  if(k==='k'||k==='shift'){ doDash(); }
+  if(k==='w'||k==='a'||k==='s'||k==='d'||k===' '||k==='arrowup'||k==='arrowdown'||k==='arrowleft'||k==='arrowright') e.preventDefault();
+}, {passive:false});
+window.addEventListener('keyup', function(e){
+  var k=e.key.toLowerCase(); keys[k]=false;
+  if(k==='j'||k===' '||k==='enter') input.atk=false;
+  refreshAtk();
+});
+
+/* =========================================================
+   ゲーム開始 / ループ
+   ========================================================= */
+function startRun(wid){
+  G.depth=1; G.room=1; G.level=1; G.xp=0; G.xpNeed=14;
+  G.coins=0; G.kills=0; G.runCoins=0;
+  G.mobs.length=0; G.bullets.length=0; G.ebullets.length=0; G.fx.length=0; G.floats.length=0; G.drops.length=0;
+  G.gate=null; G.bossActive=false; G.shake=0;
+  computeSafe();
+  G.roomW = Math.max(1040, Math.round(W*1.12));
+  G.roomH = Math.max(1240, Math.round(H*1.32));
+  G.player = newPlayer(wid||WEAPONS[0].id);
+  G.cam.x = G.player.x - W/2; G.cam.y = G.player.y - H/2;
+  spawnRoom();
+  hideAll();
+  G.state='play';
+  toast('第 1 層 ― 妖共が待つ', '#e8dcc8');
+}
+var _origDoAttack=null;
+function loop(ts){
+  var dt = Math.min(0.05, (ts - (G.lastTs||ts))/1000);
+  G.lastTs = ts; G.last = dt; G.t += dt;
+  if(G.state==='play'){
+    updatePlayer(dt); updateMobs(dt); updateBullets(dt); updateDrops(dt); updateFx(dt); updateGate(dt); updateCamera(dt);
+  } else {
+    updateFx(dt); updateCamera(dt);
+  }
+  render();
+  requestAnimationFrame(loop);
+}
+
+/* =========================================================
+   初期化
+   ========================================================= */
+function bindUI(){
+  document.getElementById('btnStart').onclick=function(){ startRun(G.startWeaponsSel); };
+  document.getElementById('btnShrine').onclick=function(){ renderShrine(); G.state='shrine'; hideAll(); showScreen('scrShrine'); };
+  document.getElementById('btnShrineBack').onclick=function(){ G.state='title'; renderTitle(); hideAll(); showScreen('scrTitle'); };
+  document.getElementById('btnRetry').onclick=function(){ G.state='title'; renderTitle(); hideAll(); showScreen('scrTitle'); };
+  document.getElementById('btnShrineDead').onclick=function(){ renderShrine(); G.state='shrine'; hideAll(); showScreen('scrShrine'); };
+  document.getElementById('btnSkipReward').onclick=skipReward;
+  document.getElementById('btnLootYes').onclick=function(){ applyLoot(true); };
+  document.getElementById('btnLootNo').onclick=function(){ applyLoot(false); };
+  document.getElementById('btnResume').onclick=resumeGame;
+  document.getElementById('btnQuit').onclick=quitRun;
+}
+function init(){
+  G.meta = loadMeta();
+  computeSafe();
+  resize();
+  // 攻撃時に斬撃パラメータを記録（描画用）
+  _origDoAttack = doAttack;
+  doAttack = function(st){
+    var p=G.player; if(!p) return;
+    p.swingRange = st.range||60; p.arcA = st.arc||1.6;
+    _origDoAttack(st);
+  };
+  G.startWeapons = rollStartWeapons();
+  renderTitle();
+  bindUI();
+  G.state='title';
+  hideAll(); showScreen('scrTitle');
+  requestAnimationFrame(loop);
+  try{ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){}); }catch(e){}
+  window.addEventListener('resize', function(){ computeSafe(); });
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden && G.state==='play'){ togglePause(); }
+  });
+}
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "百鬼夜行 - 和風ハクスラ",
+  "short_name": "百鬼夜行",
+  "description": "和風ディアブロ風ハクスラ。妖を斬り、深奥へ潜れ。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d0507",
+  "theme_color": "#0d0507",
+  "lang": "ja",
+  "categories": ["games"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
